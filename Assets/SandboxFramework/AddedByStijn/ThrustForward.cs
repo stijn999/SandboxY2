@@ -2,15 +2,16 @@ using UnityEngine;
 
 public class ThrustForward : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public float forceAmount = 500f;
+    private Rigidbody rb;
+
     void Start()
     {
-        
+        rb = GetComponent<Rigidbody>();
     }
 
-    // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        
+            rb.AddForce(Vector3.up * forceAmount * Time.deltaTime);
     }
 }
