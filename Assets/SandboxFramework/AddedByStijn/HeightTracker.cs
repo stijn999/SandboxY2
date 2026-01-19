@@ -7,6 +7,10 @@ public class CoordinateTracker : MonoBehaviour
     public TextMeshProUGUI heightText;
     public float Highscore;
 
+    public GameObject Cage1;
+    public GameObject Cage2;
+    public GameObject Cage3;
+
     void Update()
     {
         // Get the player's current Y position
@@ -24,5 +28,23 @@ public class CoordinateTracker : MonoBehaviour
 
         // Update UI Text element
         heightText.text = Heighttextonscreen;
+
+
+        // Unlock Part 1
+        if (Highscore > 5) {
+            Cage1.SetActive(false);
+        }
+
+        // Unlock Part 2
+        if (Highscore > 10)
+        {
+            Cage2.SetActive(false);
+        }
+
+        // Unlock Part 3
+        if (Highscore > 15)
+        {
+            Cage3.SetActive(false);
+        }
     }
 }
