@@ -15,7 +15,7 @@ public class ThrustForward : MonoBehaviour
     {
         // Check for input every frame
         // Use "Jump" for the default Spacebar or specify KeyCode.Space
-        if (Input.GetKey(KeyCode.Space))
+        if (Input.GetKey(KeyCode.B))
         {
             isThrusting = true;
         }
