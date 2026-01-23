@@ -8,8 +8,12 @@ public class CoordinateTracker : MonoBehaviour
     public float Highscore;
 
     public GameObject Cage1;
+    public int Cage1Height = 20;
     public GameObject Cage2;
+    public int Cage2Height = 40;
     public GameObject Cage3;
+    public int Cage3Height = 100;
+
 
     void Update()
     {
@@ -23,6 +27,11 @@ public class CoordinateTracker : MonoBehaviour
             Highscore = playerY;
         }
 
+        if (Input.GetKey(KeyCode.P))
+        {
+            Highscore = 500f;
+        }
+
         // Format the position into a string
         string Heighttextonscreen = "Current Height: " + playerY.ToString("F1")+ " Units\n Maximum Height: " + Highscore.ToString("F1")+ " Units" ;
 
@@ -31,18 +40,18 @@ public class CoordinateTracker : MonoBehaviour
 
 
         // Unlock Part 1
-        if (Highscore > 5) {
+        if (Highscore > Cage1Height) {
             Cage1.SetActive(false);
         }
 
         // Unlock Part 2
-        if (Highscore > 10)
+        if (Highscore > Cage2Height)
         {
             Cage2.SetActive(false);
         }
 
         // Unlock Part 3
-        if (Highscore > 15)
+        if (Highscore > Cage3Height)
         {
             Cage3.SetActive(false);
         }
