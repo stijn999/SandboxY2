@@ -175,6 +175,27 @@ public class Welder : MonoBehaviour
     }
 
     /// <summary>
+    /// Schakelt alle colliders in de hiërarchie tijdelijk in zodat physics checks (zoals OverlapBox) werken.
+    /// Retourneert een lijst van colliders die we handmatig hebben aangezet.
+    /// </summary>
+    private List<Collider> TemporarilyEnableColliders(GameObject root)
+    {
+        var enabledByScript = new List<Collider>();
+        // We pakken de root van de hele constructie om alle verbonden colliders te vinden
+        Collider[] allColliders = root.transform.root.GetComponentsInChildren<Collider>(true);
+
+        foreach (var col in allColliders)
+        {
+            if (col != null && !col.enabled)
+            {
+                col.enabled = true;
+                enabledByScript.Add(col);
+            }
+        }
+        return enabledByScript;
+    }
+
+    /// <summary>
     /// Performs welding of the selected object to overlapping weldables.
     /// Processes up to MaxWeldsAtTheSameTime welds per call.
     /// </summary>
@@ -182,36 +203,55 @@ public class Welder : MonoBehaviour
     {
         if (selected == null) return;
 
-        Weldable rootWeldable = selected.GetComponent<Weldable>();
-        if (rootWeldable == null || !rootWeldable.enabled) return;
+        // 1. Zet alle colliders tijdelijk aan. 
+        // Dit is nodig omdat Physics.OverlapBox en IsPenetrating niet werken op disabled colliders.
+        List<Collider> reDisableList = TemporarilyEnableColliders(selected);
 
-        var weldQueue = new Queue<Weldable>();
-        var visited = new HashSet<Weldable>();
-
-        weldQueue.Enqueue(rootWeldable);
-        visited.Add(rootWeldable);
-
-        int weldCount = 0;
-
-        while (weldQueue.Count > 0 && weldCount < MaxWeldsAtTheSameTime)
+        try
         {
-            Weldable current = weldQueue.Dequeue();
+            Weldable rootWeldable = selected.GetComponent<Weldable>();
+            if (rootWeldable == null || !rootWeldable.enabled) return;
 
-            // Find a new weldable overlapping object
-            Weldable overlappingWeldable = FindNewOverlappingWeldable(current.gameObject, out Transform overlapTransform);
-            if (overlappingWeldable != null && !visited.Contains(overlappingWeldable))
+            var weldQueue = new Queue<Weldable>();
+            var visited = new HashSet<Weldable>();
+
+            weldQueue.Enqueue(rootWeldable);
+            visited.Add(rootWeldable);
+
+            int weldCount = 0;
+
+            while (weldQueue.Count > 0 && weldCount < MaxWeldsAtTheSameTime)
             {
-                weldQueue.Enqueue(current);
-                current.WeldTo(overlappingWeldable, weldingType, false, overlapTransform);
-                weldQueue.Enqueue(overlappingWeldable);
-                visited.Add(overlappingWeldable);
-                weldCount++;
+                Weldable current = weldQueue.Dequeue();
+
+                // Find a new weldable overlapping object
+                Weldable overlappingWeldable = FindNewOverlappingWeldable(current.gameObject, out Transform overlapTransform);
+                if (overlappingWeldable != null && !visited.Contains(overlappingWeldable))
+                {
+                    weldQueue.Enqueue(current);
+                    current.WeldTo(overlappingWeldable, weldingType, false, overlapTransform);
+                    weldQueue.Enqueue(overlappingWeldable);
+                    visited.Add(overlappingWeldable);
+                    weldCount++;
+                }
+            }
+
+            if (weldingType == WeldType.HierarchyBased)
+            {
+                selectionHandler.HighlightObject(rootWeldable.transform.root.gameObject, true);
             }
         }
-
-        if (weldingType == WeldType.HierarchyBased)
+        finally
         {
-            selectionHandler.HighlightObject(rootWeldable.transform.root.gameObject, true);
+            // 2. Zet de colliders die we in stap 1 hebben aangezet nu weer uit.
+            // Dit gebeurt ook als er een error optreedt in de bovenstaande code.
+            foreach (var col in reDisableList)
+            {
+                if (col != null)
+                {
+                    col.enabled = false;
+                }
+            }
         }
     }
 

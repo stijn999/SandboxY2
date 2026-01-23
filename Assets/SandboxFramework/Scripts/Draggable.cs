@@ -28,6 +28,29 @@ public class Draggable : MonoBehaviour
         }
     }
 
+    private void SetCollidersActive(bool active)
+    {
+        Weldable weldable = GetComponent<Weldable>();
+        IEnumerable<Collider> colliders;
+
+        if (weldable != null && weldable.weldType == WeldType.HierarchyBased)
+        {
+            colliders = Utils.FindAllInHierarchyAndConnections<Collider>(weldable);
+        }
+        else
+        {
+            colliders = GetComponentsInChildren<Collider>(true);
+        }
+
+        foreach (var col in colliders)
+        {
+            if (col != null)
+            {
+                col.enabled = active;
+            }
+        }
+    }
+
     /// <summary>
     /// Called when dragging starts. Optionally modifies Rigidbody settings.
     /// </summary>
@@ -42,6 +65,8 @@ public class Draggable : MonoBehaviour
         isBeingDragged = true;
 
         ApplyRigidbodyStateChange(stateChange);
+
+        SetCollidersActive(false);
     }
 
     /// <summary>
@@ -144,6 +169,8 @@ public class Draggable : MonoBehaviour
     public void EndDrag(RigidbodyStateChange stateChange, float throwMultiplier, float maxThrowVelocity)
     {
         if (!enabled) return;
+
+        SetCollidersActive(true);
 
         OnRelease();
         ApplyRigidbodyStateChange(stateChange);

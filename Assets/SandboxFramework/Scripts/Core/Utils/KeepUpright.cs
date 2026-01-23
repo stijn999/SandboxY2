@@ -6,11 +6,9 @@ public class KeepUpright : MonoBehaviour
 {
     void LateUpdate()
     {
-        if (transform.parent == null)
+        if (transform.parent && transform.parent.parent == null)
         {
-            transform.rotation = Quaternion.identity;
-            float rotationY = transform.rotation.eulerAngles.y;
-            transform.rotation = Quaternion.Euler(0, rotationY, 0);
+            transform.rotation = transform.rotation * Quaternion.FromToRotation(transform.up, Vector3.up);
         }
     }
 }
